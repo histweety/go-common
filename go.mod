@@ -1,4 +1,4 @@
-module github.com/tweety-topup/common-package.git
+module github.com/tweety-topup/common-package
 
 go 1.22.4
 
