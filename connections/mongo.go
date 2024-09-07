@@ -1,4 +1,4 @@
-package mongo
+package connections
 
 import (
 	"context"
@@ -9,26 +9,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MongoInstance struct {
-	Config *MongoConfig
+type MongoConfig struct {
+	Host   string
+	DBName string
 }
 
-func New(config *MongoConfig) *MongoInstance {
-	return &MongoInstance{
-		Config: config,
-	}
-}
-
-func (m *MongoInstance) Connect() (*mongo.Client, error) {
+func MongoConnect(cfg MongoConfig) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	clientOpts := options.Client().ApplyURI(m.Config.Host)
+	clientOpts := options.Client().ApplyURI(cfg.Host)
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Infof("Connected to MongoDB: %s", m.Config.Host)
+	log.Infof("Connected to MongoDB: %s", cfg.Host)
 	return client, nil
 }
