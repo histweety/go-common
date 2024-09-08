@@ -10,8 +10,7 @@ import (
 )
 
 type MongoConfig struct {
-	Host   string
-	DBName string
+	Host string
 }
 
 func MongoConnect(cfg MongoConfig) (*mongo.Client, error) {
