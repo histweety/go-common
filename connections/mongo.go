@@ -11,10 +11,11 @@ import (
 )
 
 type MongoConfig struct {
-	Host string
+	Host   string
+	DBName string
 }
 
-func MongoConnect(cfg MongoConfig) *mongo.Client {
+func MongoConnect(cfg MongoConfig) *mongo.Database {
 	var client *mongo.Client
 	var err interface{}
 
@@ -24,6 +25,7 @@ func MongoConnect(cfg MongoConfig) *mongo.Client {
 	clientOpts := options.Client().ApplyURI(cfg.Host)
 
 	for i := 0; i < 3; i++ {
+		log.Infof("Connecting to MongoDB: %s", cfg.Host)
 		client, err = mongo.Connect(ctx, clientOpts)
 		if err == nil {
 			break
@@ -39,5 +41,5 @@ func MongoConnect(cfg MongoConfig) *mongo.Client {
 
 	log.Infof("Connected to MongoDB: %s", cfg.Host)
 
-	return client
+	return client.Database(cfg.DBName)
 }
