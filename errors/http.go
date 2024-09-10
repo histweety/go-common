@@ -2,6 +2,7 @@ package errors
 
 import (
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 )
 
 type BadRequestError struct {
@@ -13,6 +14,10 @@ type BadRequestError struct {
 
 func (e *BadRequestError) Error() string {
 	return e.message
+}
+
+func (e *BadRequestError) Status() int {
+	return fiber.StatusBadRequest
 }
 
 func NewBadRequestError(err validator.FieldError) *BadRequestError {
@@ -31,6 +36,10 @@ type NotFoundError struct {
 
 func (e *NotFoundError) Error() string {
 	return e.message
+}
+
+func (e *NotFoundError) Status() int {
+	return fiber.StatusNotFound
 }
 
 func NewNotFoundError(entity string) *NotFoundError {
