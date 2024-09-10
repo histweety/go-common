@@ -5,6 +5,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type CustomError interface {
+	Error() string
+	Status() int
+}
+
 type BadRequestError struct {
 	field   string
 	tag     string
