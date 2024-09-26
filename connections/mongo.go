@@ -11,21 +11,21 @@ import (
 )
 
 type MongoConfig struct {
-	Host   string
-	DBName string
+	URI string
+	DB  string
 }
 
 func MongoConnect(cfg MongoConfig) *mongo.Database {
 	var client *mongo.Client
 	var err interface{}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	clientOpts := options.Client().ApplyURI(cfg.Host)
+	clientOpts := options.Client().ApplyURI(cfg.URI)
 
 	for i := 0; i < 3; i++ {
-		log.Infof("Connecting to MongoDB: %s", cfg.Host)
+		log.Info("[MongoDB]: connecting...")
 		client, err = mongo.Connect(ctx, clientOpts)
 		if err == nil {
 			break
@@ -35,11 +35,11 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 	}
 
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
+		log.Fatalf("[MongoDB]: failed to connect: %v", err)
 		os.Exit(0)
 	}
 
-	log.Infof("Connected to MongoDB: %s", cfg.Host)
+	log.Info("[MongoDB]: connected!")
 
-	return client.Database(cfg.DBName)
+	return client.Database(cfg.DB)
 }
