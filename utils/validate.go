@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/arthadede/common-package/errors"
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2/log"
+)
 
 var validate *validator.Validate
 
@@ -13,7 +17,16 @@ func ValidateStruct(s interface{}) error {
 		initValidator()
 	}
 
-	return validate.Struct(s)
+	err := validate.Struct(s)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			log.Errorf("Error: %s\n", err.Error())
+		}
+
+		return errors.ErrStructValidation
+	}
+
+	return nil
 }
 
 func ValidateField(field interface{}, tag string) error {
@@ -21,5 +34,14 @@ func ValidateField(field interface{}, tag string) error {
 		initValidator()
 	}
 
-	return validate.Var(field, tag)
+	err := validate.Var(field, tag)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			log.Errorf("Error: %s\n", err.Error())
+		}
+
+		return errors.ErrStructValidation
+	}
+
+	return nil
 }
