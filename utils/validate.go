@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"github.com/arthadede/common-package/errors"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/histweety/go-common/errors"
 )
 
 var validate *validator.Validate

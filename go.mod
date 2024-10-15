@@ -1,4 +1,4 @@
-module github.com/arthadede/common-package
+module github.com/histweety/go-common
 
 go 1.22.4
 

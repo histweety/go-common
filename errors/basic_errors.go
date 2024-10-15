@@ -9,5 +9,3 @@ var ErrDataDelete = errors.New("ERR_DATA_DELETE")
 
 var ErrStructValidation = errors.New("ERR_STRUCT_VALIDATION")
 var ErrStructParsing = errors.New("ERR_STRUCT_PARSING")
-
-// var ErrSomethingWentWrong = errors.New("error something went wrong")
