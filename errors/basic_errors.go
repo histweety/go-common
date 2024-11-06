@@ -11,3 +11,5 @@ var ErrStructValidation = errors.New("ERR_STRUCT_VALIDATION")
 var ErrStructParsing = errors.New("ERR_STRUCT_PARSING")
 
 var ErrUnauthorized = errors.New("ERR_UNAUTHORIZED")
+
+var ErrInternalServer = errors.New("ERR_INTERNAL_SERVER")
