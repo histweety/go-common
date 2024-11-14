@@ -1,17 +1,12 @@
 package middlewares
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/histweety/go-common/types"
 )
 
-type claims struct {
-	UserID string `json:"user_id"`
-	jwt.StandardClaims
-}
-
 type iAuthService interface {
-	ValidateToken(token string) (*claims, error)
+	ValidateToken(token string) (*types.Claims, error)
 }
 
 func AuthRequired(authService iAuthService) fiber.Handler {
