@@ -25,7 +25,7 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 	clientOpts := options.Client().ApplyURI(cfg.URI)
 
 	for i := 0; i < 3; i++ {
-		log.Infof("[MongoDB]: connecting...")
+		log.Info("[MongoDB]: connecting...")
 		client, err = mongo.Connect(ctx, clientOpts)
 		if err == nil {
 			break
@@ -39,7 +39,7 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 		os.Exit(0)
 	}
 
-	log.Infof("[MongoDB]: connected!")
+	log.Info("[MongoDB]: connected!")
 
 	return client.Database(cfg.DB)
 }
