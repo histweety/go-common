@@ -2,7 +2,6 @@ package connections
 
 import (
 	"context"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -23,20 +22,19 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 	defer cancel()
 
 	clientOpts := options.Client().ApplyURI(cfg.URI)
-
-	for i := 0; i < 3; i++ {
-		log.Info("[MongoDB]: connecting...")
-		client, err = mongo.Connect(ctx, clientOpts)
-		if err == nil {
-			break
-		}
-
-		time.Sleep(5 * time.Second)
-	}
-
+	client, err = mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		log.Fatalf("[MongoDB]: failed to connect: %v", err)
-		os.Exit(0)
+		log.Fatal("[MongoDB]: failed to connect:", err)
+	}
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			log.Fatal("[MongoDB]: failed to disconnect client: ", err)
+		}
+	}()
+
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal("[MongoDB]: failed to ping:", err)
 	}
 
 	log.Info("[MongoDB]: connected!")
