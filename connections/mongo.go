@@ -14,7 +14,7 @@ type MongoConfig struct {
 	DB  string
 }
 
-func MongoConnect(cfg MongoConfig) *mongo.Database {
+func MongoConnect(cfg MongoConfig) (*mongo.Client, *mongo.Database) {
 	var client *mongo.Client
 	var err interface{}
 
@@ -26,11 +26,6 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 	if err != nil {
 		log.Fatal("[MongoDB]: failed to connect:", err)
 	}
-	defer func() {
-		if err := client.Disconnect(ctx); err != nil {
-			log.Fatal("[MongoDB]: failed to disconnect client: ", err)
-		}
-	}()
 
 	err = client.Ping(ctx, nil)
 	if err != nil {
@@ -39,5 +34,5 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 
 	log.Info("[MongoDB]: connected!")
 
-	return client.Database(cfg.DB)
+	return client, client.Database(cfg.DB)
 }
