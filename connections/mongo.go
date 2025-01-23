@@ -14,7 +14,7 @@ type MongoConfig struct {
 	DB  string
 }
 
-func MongoConnect(cfg MongoConfig) (*mongo.Client, *mongo.Database) {
+func MongoConnect(cfg MongoConfig) *mongo.Database {
 	var client *mongo.Client
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -26,10 +26,10 @@ func MongoConnect(cfg MongoConfig) (*mongo.Client, *mongo.Database) {
 	err := client.Ping(ctx, nil)
 
 	if err != nil {
-		log.Fatal("[MongoDB]: failed to ping:", err.Error())
+		log.Fatal("[MongoDB]: failed to ping: ", err)
 	}
 
 	log.Info("[MongoDB]: connected!")
 
-	return client, client.Database(cfg.DB)
+	return client.Database(cfg.DB)
 }
