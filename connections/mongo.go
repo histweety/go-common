@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MongoConfig struct {
@@ -16,20 +16,17 @@ type MongoConfig struct {
 
 func MongoConnect(cfg MongoConfig) (*mongo.Client, *mongo.Database) {
 	var client *mongo.Client
-	var err interface{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	clientOpts := options.Client().ApplyURI(cfg.URI)
-	client, err = mongo.Connect(ctx, clientOpts)
-	if err != nil {
-		log.Fatal("[MongoDB]: failed to connect:", err)
-	}
+	clientOpts.Auth.AuthSource = cfg.DB
+	client, _ = mongo.Connect(clientOpts)
+	err := client.Ping(ctx, nil)
 
-	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Fatal("[MongoDB]: failed to ping:", err)
+		log.Fatal("[MongoDB]: failed to ping:", err.Error())
 	}
 
 	log.Info("[MongoDB]: connected!")
