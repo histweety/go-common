@@ -10,19 +10,27 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type SeedingData struct {
+type seed_dir struct {
+	Filename string `json:"file_name"`
 }
 
 func Seeding(db *mongo.Database) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		filename := c.Params("filename")
+		payload := new(seed_dir)
+		if err := c.BodyParser(payload); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"statusCode": 400,
+				"message":    "Error parsing body",
+				"data":       err.Error(),
+			})
+		}
 
 		cwd, err := os.Getwd()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		file, err := os.Open(filepath.Join(cwd, filename))
+		file, err := os.Open(filepath.Join(cwd, payload.Filename))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
