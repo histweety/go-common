@@ -13,6 +13,8 @@ import (
 
 func Seeding(db *mongo.Database) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		var succeed []string
+		var skipped []string
 		cwd, err := os.Getwd()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -25,15 +27,10 @@ func Seeding(db *mongo.Database) fiber.Handler {
 		}
 
 		for _, file := range files {
-			if file.IsDir() {
-				continue
-			}
-
-			if filepath.Ext(file.Name()) != ".json" {
-				continue
-			}
-
-			if fileHasExecuted(db, file.Name()) {
+			if file.IsDir() ||
+				filepath.Ext(file.Name()) != ".json" ||
+				fileHasExecuted(db, file.Name()) {
+				skipped = append(skipped, file.Name())
 				continue
 			}
 
@@ -46,9 +43,19 @@ func Seeding(db *mongo.Database) fiber.Handler {
 			if err := seedData(db, dataFile); err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 			}
+
+			migration := db.Collection("migrations")
+			migration.InsertOne(context.Background(), map[string]interface{}{
+				"filename": file.Name(),
+			})
+			succeed = append(succeed, file.Name())
 		}
 
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"statusCode": 200,
+			"message":    "Seeding data success",
+			"data":       map[string]interface{}{"succeed": succeed, "skipped": skipped},
+		})
 	}
 }
 
@@ -64,11 +71,6 @@ func seedData(db *mongo.Database, file *os.File) error {
 			return err
 		}
 	}
-
-	migration := db.Collection("migrations")
-	migration.InsertOne(context.Background(), map[string]interface{}{
-		"filename": file.Name(),
-	})
 
 	return nil
 }
