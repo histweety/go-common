@@ -13,14 +13,16 @@ import (
 type SeedingData struct {
 }
 
-func Seeding(db *mongo.Database, path string) fiber.Handler {
+func Seeding(db *mongo.Database) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		filename := c.Params("filename")
+
 		cwd, err := os.Getwd()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		file, err := os.Open(filepath.Join(cwd, path))
+		file, err := os.Open(filepath.Join(cwd, filename))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
