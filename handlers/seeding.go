@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -14,7 +15,12 @@ type SeedingData struct {
 
 func Seeding(db *mongo.Database, path string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		file, err := os.Open(path)
+		cwd, err := os.Getwd()
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		file, err := os.Open(filepath.Join(cwd, path))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
