@@ -13,8 +13,9 @@ import (
 
 func Seeding(db *mongo.Database) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		var succeed []string
-		var skipped []string
+		var succeed []string = []string{}
+		var skipped []string = []string{}
+
 		cwd, err := os.Getwd()
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})

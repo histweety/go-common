@@ -1,36 +1,32 @@
-package middlewares
+package auth
 
 import (
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/histweety/go-common/types"
 )
 
-type iAuthService interface {
-	ValidateToken(token string) (*types.Claims, error)
+type Config struct {
+	Secret string
 }
 
-func AuthRequired(authService iAuthService) fiber.Handler {
+func New(config Config) fiber.Handler {
+	var accessTokenSecret = []byte(config.Secret)
+
 	return func(c *fiber.Ctx) error {
 		token := c.Get("Authorization")
-		if token == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"statusCode": 401,
-				"message":    "Missing or malformed JWT",
-				"data":       nil,
+		if token != "" {
+			claims := &types.Claims{}
+			token = strings.Replace(token, "Bearer ", "", 1)
+			jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+				return accessTokenSecret, nil
 			})
+
+			c.Locals("UserID", claims.UserID)
 		}
 
-		claims, err := authService.ValidateToken(token)
-		if err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"statusCode": 401,
-				"message":    "Invalid or expired JWT",
-				"data":       nil,
-			})
-		}
-
-		// Store user ID in locals for use in handlers
-		c.Locals("userID", claims.UserID)
 		return c.Next()
 	}
 }
