@@ -37,6 +37,22 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 			return c.Next()
 		}
 
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"statusCode": 401,
+				"message":    "Unauthorized",
+				"data":       "Something went wrong",
+			})
+		}
+
+		if !token.Valid {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"statusCode": 401,
+				"message":    "Unauthorized",
+				"data":       "Token is invalid",
+			})
+		}
+
 		c.Locals("UserID", claims.UserID)
 
 		return c.Next()
