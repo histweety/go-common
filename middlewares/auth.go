@@ -9,26 +9,46 @@ import (
 )
 
 type ConfigAuth struct {
-	Secret string
+	Secret    string
+	WhiteList []string
 }
 
-func NewAuth(config ConfigAuth) fiber.Handler {
-	var accessTokenSecret = []byte(config.Secret)
+func NewAuth(cfg ConfigAuth) fiber.Handler {
+	var accessTokenSecret = []byte(cfg.Secret)
 
 	return func(c *fiber.Ctx) error {
 		tokenString := c.Get("Authorization")
-		if tokenString != "" {
-			claims := &types.Claims{}
-			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-				return accessTokenSecret, nil
-			})
+		isWhiteList := isContain(c.Path(), cfg.WhiteList)
 
-			if err == nil && token.Valid {
-				c.Locals("UserID", claims.UserID)
-			}
+		if tokenString == "" && isWhiteList {
+			return c.Next()
 		}
+
+		claims := &types.Claims{}
+		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return accessTokenSecret, nil
+		})
+
+		if err != nil && isWhiteList {
+			return c.Next()
+		}
+		if !token.Valid && isWhiteList {
+			return c.Next()
+		}
+
+		c.Locals("UserID", claims.UserID)
 
 		return c.Next()
 	}
+}
+
+func isContain(path string, whiteList []string) bool {
+	for _, p := range whiteList {
+		if p == path {
+			return true
+		}
+	}
+
+	return false
 }

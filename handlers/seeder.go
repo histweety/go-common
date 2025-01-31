@@ -11,11 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type SeedConfig struct {
-	DB *mongo.Database
-}
-
-func Seeder(cfg SeedConfig) fiber.Handler {
+func Seeder(DB *mongo.Database) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var succeed []string = []string{}
 		var skipped []string = []string{}
@@ -34,7 +30,7 @@ func Seeder(cfg SeedConfig) fiber.Handler {
 		for _, file := range files {
 			if file.IsDir() ||
 				filepath.Ext(file.Name()) != ".json" ||
-				fileHasExecuted(cfg.DB, file.Name()) {
+				fileHasExecuted(DB, file.Name()) {
 				skipped = append(skipped, file.Name())
 				continue
 			}
@@ -45,11 +41,11 @@ func Seeder(cfg SeedConfig) fiber.Handler {
 			}
 			defer dataFile.Close()
 
-			if err := seedData(cfg.DB, dataFile); err != nil {
+			if err := seedData(DB, dataFile); err != nil {
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 			}
 
-			migration := cfg.DB.Collection("migrations")
+			migration := DB.Collection("migrations")
 			migration.InsertOne(context.Background(), map[string]interface{}{
 				"filename": file.Name(),
 			})

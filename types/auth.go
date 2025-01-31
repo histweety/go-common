@@ -3,8 +3,8 @@ package types
 import "github.com/dgrijalva/jwt-go"
 
 type ConfigAuth struct {
-	Secret        string
-	RefreshSecret string
+	SecretKey        string
+	SecretRefreshKey string
 }
 
 type Claims struct {
