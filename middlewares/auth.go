@@ -1,4 +1,4 @@
-package auth
+package middlewares
 
 import (
 	"strings"
@@ -12,7 +12,7 @@ type Config struct {
 	Secret string
 }
 
-func New(config Config) fiber.Handler {
+func NewAuth(config Config) fiber.Handler {
 	var accessTokenSecret = []byte(config.Secret)
 
 	return func(c *fiber.Ctx) error {
