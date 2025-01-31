@@ -8,23 +8,25 @@ import (
 	"github.com/histweety/go-common/types"
 )
 
-type Config struct {
+type ConfigAuth struct {
 	Secret string
 }
 
-func NewAuth(config Config) fiber.Handler {
+func NewAuth(config ConfigAuth) fiber.Handler {
 	var accessTokenSecret = []byte(config.Secret)
 
 	return func(c *fiber.Ctx) error {
-		token := c.Get("Authorization")
-		if token != "" {
+		tokenString := c.Get("Authorization")
+		if tokenString != "" {
 			claims := &types.Claims{}
-			token = strings.Replace(token, "Bearer ", "", 1)
-			jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+			tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+			token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 				return accessTokenSecret, nil
 			})
 
-			c.Locals("UserID", claims.UserID)
+			if err == nil && token.Valid {
+				c.Locals("UserID", claims.UserID)
+			}
 		}
 
 		return c.Next()
