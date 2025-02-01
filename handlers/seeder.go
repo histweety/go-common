@@ -63,29 +63,30 @@ func Seeder(DB *mongo.Database) fiber.Handler {
 }
 
 func seedData(db *mongo.Database, file *os.File) error {
-	var seeders map[string]interface{}
+	var seeders map[string][]map[string]interface{}
 	byteValue, _ := io.ReadAll(file)
 	json.Unmarshal(byteValue, &seeders)
 
 	for collectionName, collectionValues := range seeders {
 		collection := db.Collection(collectionName)
 
-		// Support for relational data
-		relations := catchHasRelations(collectionValues.(map[string]interface{}))
-		if len(relations) > 0 {
-			for _, relation := range relations {
-				parts := strings.Split(relation, ":")
-				valueKey, searchKey, collection := parts[0], parts[1], parts[2]
-				relatedCollection := db.Collection(collection)
-				actualValue := relatedCollection.FindOne(context.Background(), bson.M{
-					searchKey: collectionValues.(map[string]interface{})[valueKey],
-				})
-				collectionValues.(map[string]interface{})[valueKey] = actualValue
-				delete(collectionValues.(map[string]interface{}), relation)
+		for _, values := range collectionValues {
+			// Support for relational data
+			relations := catchHasRelations(values)
+			if len(relations) > 0 {
+				for _, relation := range relations {
+					parts := strings.Split(relation, ":")
+					valueKey, searchKey, collection := parts[0], parts[1], parts[2]
+					relatedCollection := db.Collection(collection)
+					var actualValue map[string]interface{}
+					relatedCollection.FindOne(context.Background(), bson.M{searchKey: values[relation]}).Decode(&actualValue)
+					values[valueKey] = actualValue["_id"]
+					delete(values, relation)
+				}
 			}
 		}
 
-		_, err := collection.InsertMany(context.Background(), collectionValues.([]interface{}))
+		_, err := collection.InsertMany(context.Background(), collectionValues)
 		if err != nil {
 			return err
 		}
