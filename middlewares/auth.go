@@ -30,14 +30,11 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 			return accessTokenSecret, nil
 		})
 
-		if err != nil && isWhiteList {
-			return c.Next()
-		}
-		if !token.Valid && isWhiteList {
-			return c.Next()
-		}
-
 		if err != nil {
+			if isWhiteList {
+				return c.Next()
+			}
+
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"statusCode": 401,
 				"message":    "Unauthorized",
@@ -45,7 +42,11 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 			})
 		}
 
-		if !token.Valid {
+		if token != nil && !token.Valid {
+			if isWhiteList {
+				return c.Next()
+			}
+
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"statusCode": 401,
 				"message":    "Unauthorized",

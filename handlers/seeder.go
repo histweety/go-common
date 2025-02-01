@@ -6,8 +6,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -67,6 +69,22 @@ func seedData(db *mongo.Database, file *os.File) error {
 
 	for collectionName, collectionValues := range seeders {
 		collection := db.Collection(collectionName)
+
+		// Support for relational data
+		relations := catchHasRelations(collectionValues.(map[string]interface{}))
+		if len(relations) > 0 {
+			for _, relation := range relations {
+				parts := strings.Split(relation, ":")
+				valueKey, searchKey, collection := parts[0], parts[1], parts[2]
+				relatedCollection := db.Collection(collection)
+				actualValue := relatedCollection.FindOne(context.Background(), bson.M{
+					searchKey: collectionValues.(map[string]interface{})[valueKey],
+				})
+				collectionValues.(map[string]interface{})[valueKey] = actualValue
+				delete(collectionValues.(map[string]interface{}), relation)
+			}
+		}
+
 		_, err := collection.InsertMany(context.Background(), collectionValues.([]interface{}))
 		if err != nil {
 			return err
@@ -83,4 +101,17 @@ func fileHasExecuted(db *mongo.Database, filename string) bool {
 	})
 
 	return count > 0
+}
+
+func catchHasRelations(values map[string]interface{}) []string {
+	relations := []string{}
+
+	for key := range values {
+		parts := strings.Split(key, ":")
+		if len(parts) == 3 {
+			relations = append(relations, key)
+		}
+	}
+
+	return relations
 }
