@@ -3,9 +3,9 @@ package middlewares
 import (
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/histweety/go-common/types"
+	"github.com/histweety/go-common/utils"
 )
 
 type ConfigAuth struct {
@@ -14,8 +14,6 @@ type ConfigAuth struct {
 }
 
 func NewAuth(cfg ConfigAuth) fiber.Handler {
-	var accessTokenSecret = []byte(cfg.Secret)
-
 	return func(c *fiber.Ctx) error {
 		tokenString := c.Get("Authorization")
 		isWhiteList := isContain(c.Path(), cfg.WhiteList)
@@ -26,10 +24,7 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 
 		claims := &types.Claims{}
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return accessTokenSecret, nil
-		})
-
+		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
 			if isWhiteList {
 				return c.Next()
@@ -37,20 +32,8 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"statusCode": 401,
-				"message":    "Unauthorized",
-				"data":       "Something went wrong",
-			})
-		}
-
-		if token != nil && !token.Valid {
-			if isWhiteList {
-				return c.Next()
-			}
-
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"statusCode": 401,
-				"message":    "Unauthorized",
-				"data":       "Token is invalid",
+				"message":    err.Error(),
+				"data":       nil,
 			})
 		}
 

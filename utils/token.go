@@ -10,10 +10,9 @@ import (
 	"github.com/histweety/go-common/types"
 )
 
-var jwtKey = os.Getenv("SECRET_KEY")
-var refreshJwtKey = os.Getenv("SECRET_REFRESH_KEY")
-
 func GenerateToken(userID string) (string, error) {
+	jwtKey := os.Getenv("SECRET_KEY")
+	secretKey := []byte(jwtKey)
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &types.Claims{
 		UserID: userID,
@@ -23,10 +22,12 @@ func GenerateToken(userID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
+	return token.SignedString(secretKey)
 }
 
 func GenerateRefreshToken(userID string) (string, error) {
+	jwtKey := os.Getenv("SECRET_REFRESH_KEY")
+	secretKey := []byte(jwtKey)
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &types.Claims{
 		UserID: userID,
@@ -36,15 +37,17 @@ func GenerateRefreshToken(userID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(refreshJwtKey)
+	return token.SignedString(secretKey)
 }
 
 func ParseToken(tokenString string) (*types.Claims, error) {
-	claims := &types.Claims{}
+	jwtKey := os.Getenv("SECRET_KEY")
+	secretKey := []byte(jwtKey)
 
+	claims := &types.Claims{}
 	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return secretKey, nil
 	})
 
 	if err != nil {
