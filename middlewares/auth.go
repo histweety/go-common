@@ -24,7 +24,7 @@ func NewAuth(cfg ConfigAuth) fiber.Handler {
 
 		claims := &types.Claims{}
 		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
-		claims, err := utils.ParseToken(tokenString)
+		claims, err := utils.ParseToken(tokenString, false)
 		if err != nil {
 			if isWhiteList {
 				return c.Next()

@@ -40,13 +40,19 @@ func GenerateRefreshToken(userID string) (string, error) {
 	return token.SignedString(secretKey)
 }
 
-func ParseToken(tokenString string) (*types.Claims, error) {
+func ParseToken(tokenString string, isRefresh bool) (*types.Claims, error) {
 	jwtKey := os.Getenv("SECRET_KEY")
 	secretKey := []byte(jwtKey)
+	jwtRefreshKey := os.Getenv("SECRET_REFRESH_KEY")
+	secretRefreshKey := []byte(jwtRefreshKey)
 
 	claims := &types.Claims{}
 	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if isRefresh {
+			return secretRefreshKey, nil
+		}
+
 		return secretKey, nil
 	})
 
