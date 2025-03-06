@@ -10,8 +10,11 @@ import (
 )
 
 type MongoConfig struct {
-	URI string
-	DB  string
+	URI        string
+	DB         string
+	AuthSource string
+	Username   string
+	Password   string
 }
 
 func MongoConnect(cfg MongoConfig) *mongo.Database {
@@ -20,8 +23,13 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	clientOpts := options.Client().ApplyURI(cfg.URI)
-	clientOpts.Auth.AuthSource = cfg.DB
+	credential := options.Credential{
+		AuthMechanism: "SCRAM-SHA-1",
+		AuthSource:    cfg.AuthSource,
+		Username:      cfg.Username,
+		Password:      cfg.Password,
+	}
+	clientOpts := options.Client().ApplyURI(cfg.URI).SetAuth(credential)
 	client, _ = mongo.Connect(clientOpts)
 	err := client.Ping(ctx, nil)
 
