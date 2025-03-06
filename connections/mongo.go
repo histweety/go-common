@@ -37,7 +37,7 @@ func MongoConnect(cfg MongoConfig) *mongo.Database {
 		log.Fatal("[MongoDB]: failed to ping: ", err)
 	}
 
-	log.Info("[MongoDB]: connected!")
+	log.Info("[MongoDB]: connected!!")
 
 	return client.Database(cfg.DB)
 }
